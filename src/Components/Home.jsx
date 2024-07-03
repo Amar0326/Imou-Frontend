@@ -29,6 +29,7 @@ function Home() {
         reader.readAsArrayBuffer(selectedFile);
         reader.onload = (e) => {
           setExcelFile(e.target.result);
+          console.log(e.target.result);
         };
       } else {
         setExcelFile(null);
@@ -49,7 +50,24 @@ function Home() {
         console.log("Hello 2");
         const worksheet = workbook.Sheets[worksheetName];
         console.log("Hello 3");
-        const data = XLSX.utils.sheet_to_json(worksheet);
+        const data = XLSX.utils.sheet_to_json(worksheet, {
+          raw: true,
+          cellDates: true,
+          dateNF: 'dd-mm-yyyy'
+        });
+  
+        console.log("Hello 4", data);
+  
+        // Manually check and format the DateOfDispatch field
+        data.forEach(row => {
+          if (row.DateOfDispatch && typeof row.DateOfDispatch === 'number') {
+            const date = new Date(Math.round((row.DateOfDispatch - 25569) * 86400 * 1000));
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            row.DateOfDispatch = `${day}-${month}-${year}`;
+          }
+        });
         console.log("Hello3 4", data);
         setExcelData(data);
         const response = await axios.post(`${urlBackend}/v1/uploadFile`, {
@@ -74,12 +92,12 @@ function Home() {
         setLoading(false);
       } else {
         setExcelData(null);
-        toast.error("Please Upload File")
+        toast.error("Please Upload File");
       }
     } catch (err) {
       console.log("error");
     }
-    setLoading(false)
+    setLoading(false);
   };
   const fetchData = async () => {
     setLoading(true);
@@ -173,14 +191,17 @@ function Home() {
             <tbody>
               {loading && (
                 <tr className="py-2 h-[80vh]">
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                   
-                    <td className="py-2"> <BarLoader color="blue" /></td>
-                    <td></td>
-                    <td></td>
-                  </tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+
+                  <td className="py-2">
+                    {" "}
+                    <BarLoader color="blue" />
+                  </td>
+                  <td></td>
+                  <td></td>
+                </tr>
               )}
               {!loading &&
                 myData &&
@@ -212,15 +233,15 @@ function Home() {
                   );
                 })}
               {!loading && myData?.length === 0 && (
-               <tr className="py-2 h-[80vh]">
-               <td></td>
-               <td></td>
-               <td></td>
-              
-               <td className="py-2"> No Data Found</td>
-               <td></td>
-               <td></td>
-             </tr>
+                <tr className="py-2 h-[80vh]">
+                  <td></td>
+                  <td></td>
+                  <td></td>
+
+                  <td className="py-2"> No Data Found</td>
+                  <td></td>
+                  <td></td>
+                </tr>
               )}
             </tbody>
           </table>
