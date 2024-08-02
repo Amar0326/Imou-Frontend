@@ -136,6 +136,7 @@ function OrderData() {
       console.log("error");
     }
     setLoading(false);
+    window.location.href = "/";
   };
   const fetchData = async () => {
     setLoading(true);
@@ -149,6 +150,7 @@ function OrderData() {
     } catch (err) {
       console.log(err.message);
     }
+   
   };
   const handleSearchChange = async (e) => {
     setSearch(e.target.value);
